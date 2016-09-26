@@ -33,26 +33,27 @@ def load_dictionary_files():
     finally:
         f.close()
 
-
-def load_file_to_database(filename):
-    if not os.path.exists(filename):
-        exit()
+def init_database_schema():
     con = sqlite3.connect(DATABASE_DIR + DATABASE_NAME)
     cur = con.cursor()
     cur.execute("DROP TABLE IF EXISTS words")
     cur.execute('''
-        CREATE TABLE IF NOT EXISTS words (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            value_text TEXT NOT NULL,
-            value_num TEXT NOT NULL
-        )
+            CREATE TABLE IF NOT EXISTS words (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                value_text TEXT NOT NULL,
+                value_num TEXT NOT NULL,
+                UNIQUE(value_text)
+            )
 
-        ''')
-    #data = [[row.split('\t'), 121] for row in open(filename, 'r').readlines()]
+            ''')
+
+def load_dict_file_to_database(filename):
+    if not os.path.exists(filename):
+        exit()
+    con = sqlite3.connect(DATABASE_DIR + DATABASE_NAME)
+    cur = con.cursor()
     data = []
     for row in open(filename, 'r'):
         data.append([row, calc_word2num(row)])
-    #data = [[1, 1], [2, 2]]
-    #print(data[:10])
-    cur.executemany("INSERT INTO words (value_text, value_num) VALUES (?, ?);", data)
+    cur.executemany("INSERT OR IGNORE INTO words (value_text, value_num) VALUES (?, ?);", data)
     con.commit()
